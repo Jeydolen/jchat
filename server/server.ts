@@ -3,6 +3,8 @@ const sessions = require('express-session');
 const helmet = require('helmet');
 const csurf = require('csurf');
 const http = require('http');
+const cors = require('cors');
+const path = require('path');
 
 const { db, TABLES } = require('./db.ts');
 
@@ -49,9 +51,8 @@ app.use(sessions({
 
 // Basic security middlewares
 // https://expressjs.com/en/advanced/best-practice-security.html
-app.use(helmet());
-//app.use(csurf({ cookie: true }))
-
+app.use(helmet({crossOriginResourcePolicy: false,}));
+app.use(cors({origin: 'localhost', credentials: true}));
 
 // TODO: Add rate limits to prevent DDOS kind of attacks
 
@@ -69,11 +70,25 @@ app.use(require('./authentication.route.ts').app);
 app.use(require('./channels.route.ts').app);
 app.use(require('./messages.route.ts').app);
 
+// Putting this before express static to check for connection before serving pages
+const loginMiddleware = (req, res) => {
+  if (req.session.uid === undefined)
+  {
+    res.redirect('/login');
+    return;
+  }
+  res.sendFile(path.join(__dirname, 'html/index.html'));
+}
 
+app.get('/', loginMiddleware);
+app.get('/index', loginMiddleware);
+app.get('/index.html', loginMiddleware);
+
+app.use(express.static(path.join(__dirname, 'html'), { extensions:['html'] }));
 
 const wss = require('./websocket.ts').wss;
 
-httpServer.on('upgrade', async (req, socket, head) => { 
+httpServer.on('upgrade', async (req, socket, head) => {
   wss.handleUpgrade(req, socket, head, async (ws) => {
     // Authentication
     if (req.headers.cookie === undefined || req.headers.cookie === '')
@@ -88,8 +103,8 @@ httpServer.on('upgrade', async (req, socket, head) => {
     const validSession = await db.select('expire')
                                  .from(TABLES.SESSION)
                                  .where('sid', req.sid);
-    const isExpired = Date.now() > Date.parse(validSession[0].expire);
-    if (validSession.length == 0 || isExpired)
+
+    if (validSession.length == 0 || (Date.now() > Date.parse(validSession[0].expire)))
     {
       wss.emit('close', ws, req);
       return;

@@ -1,0 +1,75 @@
+:root
+{
+  font-family: 'Roboto';
+}
+
+form
+{
+  width: 20vw;
+  height: 40vh;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  border: 0.3rem solid;
+  border-radius: 1rem;
+}
+
+.primary
+{
+  background-color:rgb(35, 181, 207);
+  padding: .5rem 2rem;
+}
+
+form input, form button
+{
+  margin: 0.2rem 0;
+  padding: .5rem;
+  border-radius: .3rem;
+  width: fit-content;
+}
+
+button:hover
+{
+  cursor: pointer;
+}
+
+#messages
+{
+
+  height: 80vh;
+  overflow-y: auto;
+}
+
+.message
+{
+  padding-bottom: 1rem;
+}
+
+
+#app
+{
+  display: flex;
+}
+
+#message-container
+{
+  width: auto;
+}
+
+#channel-selector
+{
+  height: 80vh;
+  width: 10vw;
+}
+
+
+@media (orientation: portrait) and (max-width: 600px)
+{
+  form
+  {
+    width: auto;
+    height: 40vh;
+  }
+}

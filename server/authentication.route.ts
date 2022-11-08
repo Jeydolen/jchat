@@ -1,5 +1,10 @@
 const { Router } = require('express');
 const bcrypt = require('bcrypt');
+const {
+  isEmail, 
+  normalizeEmail, 
+  isStrongPassword 
+} = require('validator');
 
 const { db, TABLES } = require('./db.ts');
 
@@ -14,15 +19,14 @@ const auth_middleware = (req, res, next) => {
   next();
 };
 
-
 router.post('/register', async (req, res) => {
-  // POST request data is stored in req.body
-  // TODO: Sanitize email
-  if (req.body.email == undefined)
+  if (req.body.email === undefined || ! isEmail(req.body.email))
   {
     res.status(403).send('No email provided');
     return;
   }
+
+  const email = normalizeEmail(req.body.email);
 
   if (req.body.password == undefined)
   {
@@ -30,13 +34,27 @@ router.post('/register', async (req, res) => {
     return;
   }
 
-  if (req.body.username == undefined)
+  const password = req.body.password;
+
+  if (! isStrongPassword(password))
+  {
+    res.status(403).send('Password is not strong enough');
+    return;
+  }
+
+  if (req.body.username == undefined || typeof req.body.username !== 'string')
   {
     res.status(403).send('No username provided');
     return;
   }
+
+  if (req.body.username.length < 3 || req.body.username.length > 40)
+  {
+    res.status(403).send('Username should have a length between 3 and 39');
+    return;
+  }
   
-  const emailExist = await db.select('email').from(TABLES.USERS).where('email', req.body.email);
+  const emailExist = await db.select('email').from(TABLES.USERS).where('email', email);
   if (emailExist.length != 0)
   {
     // Account exist for this email
@@ -46,24 +64,28 @@ router.post('/register', async (req, res) => {
 
   // Account doesn't exist -> creating it
   const hashed_password = await bcrypt.hash(req.body.password, 10);
-  await db.insert({ email: req.body.email, hash: hashed_password, username: req.body.username}).into(TABLES.USERS);
-  res.send('Account successfully created !');
+  await db.insert({ email: email, hash: hashed_password, username: req.body.username}).into(TABLES.USERS);
+  res.redirect('/login');
 });
 
 router.post('/login', async (req, res, next) => {
-  if (req.body.email == undefined)
+  if (req.body.email === undefined || ! isEmail(req.body.email))
   {
     res.status(403).send('No email provided');
     return;
   }
+
+  const email = normalizeEmail(req.body.email);
 
   if (req.body.password == undefined)
   {
     res.status(403).send('No password provided');
     return;
   }
+
+  const password = req.body.password;
   
-  const hash = await db.select('hash', 'index').from('users').where('email', req.body.email);
+  const hash = await db.select('hash', 'index').from('users').where('email', email);
 
   if (hash.length == 0)
   {
@@ -71,7 +93,7 @@ router.post('/login', async (req, res, next) => {
     return;
   }
 
-  const pwdCheck = await bcrypt.compare(req.body.password, hash[0].hash);
+  const pwdCheck = await bcrypt.compare(password, hash[0].hash);
   
   // Wrong password
   if (! pwdCheck)
@@ -99,7 +121,7 @@ router.post('/login', async (req, res, next) => {
 router.get('/logout', (req, res) => {
   req.session.uid = null
   req.session.destroy();
-  res.send('Disconnected.');
+  res.redirect('/login');
 });
 
 exports.app = router;

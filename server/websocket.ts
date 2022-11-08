@@ -46,15 +46,20 @@ wss.on('connection', async (ws, req) => {
       if (uids.find((id) => id.user_id == client.uid) !== undefined)
       {
         // Don't send message to yourself
-        if (client.uid !== ws.uid)
+        if (client !== ws)
         {
           client.send(json.message);
         }
       }
     });
-    const date = Date.now();
-    await db.insert({date: new Date(date).toISOString(), content: json.message, source_id: ws.uid, channel_id: channel})
-            .into(TABLES.MESSAGES);
+
+    const db_data = {
+      date: new Date(Date.now()).toISOString(), 
+      content: json.message, 
+      source_id: ws.uid, 
+      channel_id: channel
+    };
+    await db.insert(db_data).into(TABLES.MESSAGES);
   });
 });
 
