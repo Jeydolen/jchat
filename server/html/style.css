@@ -1,6 +1,13 @@
 :root
 {
   font-family: 'Roboto';
+  overflow: visible;
+}
+
+body
+{
+  overflow: hidden;
+  min-width: 400px;
 }
 
 form
@@ -16,12 +23,6 @@ form
   border-radius: 1rem;
 }
 
-.primary
-{
-  background-color:rgb(35, 181, 207);
-  padding: .5rem 2rem;
-}
-
 form input, form button
 {
   margin: 0.2rem 0;
@@ -35,11 +36,115 @@ button:hover
   cursor: pointer;
 }
 
+.primary
+{
+  background-color:rgb(35, 181, 207);
+  padding: .5rem 2rem;
+}
+
+#context-menu
+{
+  display: none;
+  position: absolute;
+  background-color: white;
+}
+
+#app
+{
+  display: flex;
+  
+}
+
+#channel-selector
+{
+  height: 98vh;
+  border: 1px solid;
+  overflow-y: scroll;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;
+  width: 3.5rem;
+}
+
+#channel-selector::-webkit-scrollbar 
+{
+  display: none;
+}
+
+#channel-form-overlay
+{
+  display: none;
+  border: none;
+  position: fixed;
+  width: 100%; /* Full width (cover the whole page) */
+  height: 100%; /* Full height (cover the whole page) */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5); /* Black background with opacity */
+  z-index: 2;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+
+#close-btn
+{
+  align-self: flex-end;
+  justify-self: start;
+  width: 1.5rem !important;
+  height: 1.5rem;
+  border-radius: 100%;
+  padding: 0;
+}
+
+#channel-form
+{
+  width: auto;
+  height: auto;
+  justify-content: center;
+  align-items: start;
+}
+
+#channel-form button
+{
+  width: 100%;
+}
+
+#channels
+{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#channels button
+{
+  width: 3rem;
+  height: 3rem;
+  border-radius: 3rem;
+  margin: 0.5rem 0;
+}
+
+#channels .selected
+{
+  background-color: red;
+}
+
+#message-container
+{
+  width: 98%;
+  display: flex;
+  flex-direction: column;
+  margin-left: 1rem;
+  justify-content: space-around;
+}
+
 #messages
 {
-
-  height: 80vh;
   overflow-y: auto;
+  height: calc(98vh - 4vh - 1vh);
 }
 
 .message
@@ -47,21 +152,23 @@ button:hover
   padding-bottom: 1rem;
 }
 
-
-#app
+#message-input-container
 {
   display: flex;
+  flex-direction: row;
+  height: 4vh;
 }
 
-#message-container
+.message-input
 {
-  width: auto;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
 }
 
-#channel-selector
+#message-input
 {
-  height: 80vh;
-  width: 10vw;
+  width: 100%;
 }
 
 

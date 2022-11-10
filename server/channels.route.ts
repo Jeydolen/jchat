@@ -5,6 +5,7 @@ const { db, TABLES } = require('./db.ts');
 const router = Router();
 
 const channel_middleware = (req, res, next) => {
+  console.log(req.body, req.body.channel_id);
   const cid = parseInt(req.body.channel_id);
   if (req.body.channel_id === undefined || Number.isNaN(cid))
   {
@@ -16,7 +17,7 @@ const channel_middleware = (req, res, next) => {
 };
 
 router.get('/channels/list', auth_middleware, async (req, res) => {
-  const result = await db.select('cid as id')
+  const result = await db.select('cid as id', 'owner_id')
                          .from(TABLES.CHANNELS)
                          .where({user_id: req.session.uid});
   res.status(200).json(result);
@@ -52,6 +53,12 @@ router.post('/channels/join', auth_middleware, channel_middleware, async (req, r
                          .from(TABLES.CHANNELS)
                          .where({cid: req.cid});
 
+  if (result.length === 0)
+  {
+    res.status(403).send('This channel doesn\'t exist !');
+    return;
+  }
+  
   const user_ids = result.map((obj) => obj.user_id);
   if (user_ids.find(id => id === req.session.uid) !== undefined)
   {
@@ -62,7 +69,7 @@ router.post('/channels/join', auth_middleware, channel_middleware, async (req, r
   await db.insert({cid: req.cid, user_id: req.session.uid})
           .into(TABLES.CHANNELS);
 
-  res.status(200).send('Successfully joined channel: ' + req.cid);
+  res.redirect('/');
 });
 
 router.post('/channels/leave', auth_middleware, channel_middleware, async (req, res) => {

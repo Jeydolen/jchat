@@ -1,0 +1,4 @@
+/node_modules
+
+# Snyk cache
+.dccache

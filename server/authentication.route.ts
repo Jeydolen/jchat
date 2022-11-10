@@ -85,7 +85,9 @@ router.post('/login', async (req, res, next) => {
 
   const password = req.body.password;
   
-  const hash = await db.select('hash', 'index').from('users').where('email', email);
+  const hash = await db.select('hash', 'index', 'username')
+                       .from('users')
+                       .where('email', email);
 
   if (hash.length == 0)
   {
@@ -102,12 +104,16 @@ router.post('/login', async (req, res, next) => {
     return;
   }
 
+  // Cookie used for client visualisation
+  res.cookie('username', hash[0].username, { httpOnly: false });
+  res.cookie('uid', hash[0].index, { httpOnly: false });
 
   req.session.regenerate(function (err) {
     if (err) next(err)
 
     // store user information in session, typically a user id
     req.session.uid = hash[0].index;
+    req.session.username = hash[0].username;
 
     // save the session before redirection to ensure page
     // load does not happen before session is saved

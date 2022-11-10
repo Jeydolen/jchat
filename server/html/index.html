@@ -7,9 +7,23 @@
     <title>Home</title>
   </head>
   <body>
+    <div id="context-menu">
+      <button id="leave-channel">Delete / Leave channel</button>
+      <button>Invite</button>
+    </div>
     <div id="app">
       <div id="channel-selector">
-        <button>+</button>
+        <div id="channels">
+          <button id="show-channel-form">+</button>
+        </div>
+        <div id="channel-form-overlay">
+          <form id="channel-form" action="/channels/join" method="POST">
+            <button id="close-btn" type="button">x</button>
+            <input type="number" name="channel_id" placeholder="Channel ID" required >
+            <button id="create-channel-btn" type="button">Create channel</button>
+            <button type="submit">Join channel</button>
+          </form>
+        </div>
       </div>
       <div id="message-container">
         <div id="messages">
@@ -17,9 +31,9 @@
             Uhh that looks empty.
           </div>
         </div>
-        <div>
-          <input id="message-input" type="text" placeholder="Message" autofocus>
-          <button type="submit">Send</button>
+        <div id="message-input-container">
+          <input id="message-input" class="message-input" type="text" placeholder="Message" autofocus>
+          <button class="message-input">Send</button>
         </div>
       </div>
     </div>

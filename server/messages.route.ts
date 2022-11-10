@@ -12,10 +12,11 @@ router.get('/messages/list', auth_middleware, async (req, res) => {
     res.status(403).json({error: 'Channel ID is invalid'});
     return;
   }
-  const result = await db.select('content', 'source_id', 'date', 'users.username', 'users.index')
+  const result = await db.select('content', 'source_id', 'date', 'users.username')
                          .from(TABLES.MESSAGES)
-                         .join('users', 'users.index', '=', 'source_id')
-                         .join('channels', 'channels.user_id', '=', req.session.uid)
+                         .distinct()
+                         .innerJoin('users', 'users.index', '=', 'source_id')
+                         .innerJoin('channels', 'channels.user_id', '=', req.session.uid)
                          .where({channel_id: cid})
                          .orderBy('date');
   res.status(200).json(result);

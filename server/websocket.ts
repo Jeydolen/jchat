@@ -14,6 +14,8 @@ wss.on('connection', async (ws, req) => {
   if (uid.length === 0) { return; }
 
   ws.uid = uid[0].sess.uid;
+  ws.username = uid[0].sess.username;
+
   const res = await db.select('cid')
                       .from(TABLES.CHANNELS)
                       .where({user_id: ws.uid});
@@ -48,7 +50,15 @@ wss.on('connection', async (ws, req) => {
         // Don't send message to yourself
         if (client !== ws)
         {
-          client.send(json.message);
+          // Recreating object to be sure that we only send public data
+          const sanitizedJson = {
+            content: json.message,
+            source_id: ws.uid,
+            channel_id: json.channel,
+            username: ws.username,
+            date: new Date(Date.now()).toISOString(), 
+          }
+          client.send(JSON.stringify(sanitizedJson));
         }
       }
     });
@@ -57,7 +67,7 @@ wss.on('connection', async (ws, req) => {
       date: new Date(Date.now()).toISOString(), 
       content: json.message, 
       source_id: ws.uid, 
-      channel_id: channel
+      channel_id: channel,
     };
     await db.insert(db_data).into(TABLES.MESSAGES);
   });
