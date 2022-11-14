@@ -54,7 +54,7 @@ const receiveMsg = (element) => {
 const cacheMessage = (message) =>
 {
   const cachedMessages = Object.entries(channels).find(id => parseInt(id) === currentChannel);
-  cachedMessages[1].push(message);
+  cachedMessages[1].messages.push(message);
 };
 
 const sendMsg = () => {
@@ -134,7 +134,16 @@ const showContextMenu = (e, cid) => {
   menu.style.left = e.clientX + "px";
 
   document.getElementById('leave-channel')
-  .addEventListener('click', (e) => leaveChannel(e, cid))
+  .addEventListener('click', (e) => leaveChannel(e, cid));
+
+  
+  document.getElementById('invite-btn')
+  .addEventListener('click', () => {
+    document.getElementById('invite-overlay').style.display = 'flex';
+
+    document.getElementById('invite-form')
+    .addEventListener('submit', (e) => inviteToChannel(e, cid))
+  });
 };
 
 const hideContextMenu = () => {
@@ -189,6 +198,11 @@ const populateChannelSelector = (channel_ids) => {
         el.classList.add('selected');
         last_el.classList.remove('selected');
         last_el = el;
+
+        const header_els = document.getElementById('channel-header')
+        .getElementsByTagName('div');
+        header_els[0].innerText = "Channel: " +  (element.name || element.id);
+
         getMessages(currentChannel);
         document.getElementById('message-input').focus();
       }
@@ -207,10 +221,89 @@ const populateChannelSelector = (channel_ids) => {
   }); 
 };
 
-const close_btn = () => {
-  const channel_selector = document.getElementById('channel-selector');
-  const form = channel_selector.querySelector('#channel-form-overlay');
-  form.style.display = 'none';
+const joinChannel = async (e) => {
+  e.preventDefault();
+  // Theoretically there is an agnostic way to get 
+  // all inputs of a form from submit event but I can't find
+  // it again so we will use hard coded var
+  const input = document.getElementById('channel-form')
+  .querySelector('input[name=channel_id]').value;
+  
+
+  const path = 'http://localhost:3000/channels/join';
+  let body = {};
+  // If value is number then we assume its a channel ID
+  // Otherwise its  an invite code
+  if (Number.isNaN(parseInt(input)))
+  {
+    body.invite = input;
+  }
+  else
+  {
+    body.channel_id = input;
+  }
+
+  console.log(body)
+  const result = await fetch(path, 
+    {
+      method: 'POST', 
+      mode: 'cors', 
+      credentials: 'include',
+      body: JSON.stringify(body),
+      headers: {
+        // Fetch is dumb so we need to tell server that we are sending json
+        'Content-Type': 'application/json'
+      }
+    }
+  )
+  .then(response => window.location.reload())
+  .catch(e => console.log(e));
+  console.log(result);
+};
+
+const inviteToChannel =  async (e, cid) => {
+  e.preventDefault();
+
+  let body = {};
+  
+  const inputs = document.getElementById('invite-form')
+  .querySelectorAll('input');
+  for (let i = 0; i < inputs.length; i++)
+  {
+    const input = inputs.item(i);
+    body[input.getAttribute('name')] = input.value;
+  }
+
+  body["channel_id"] = cid;
+
+  if (body.expiration === '')
+  {
+    body.expiration = null;
+  }
+
+  // Get invite code
+  const result = await fetch('http://localhost:3000/channels/invite',
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    }
+  )
+  .then(r => r.json())
+  .catch(e => e);
+
+  // Print it + copy to clipboard
+  navigator.clipboard.writeText(result.invite_code);
+  const message = 'Invite code for channel ' + cid + ':\n' + result.invite_code + '\n has been copied to clipboard !';
+  alert(message);
+};
+
+const close_btn = (e) => {
+  const o = e.path.find(htmlEl => htmlEl.classList[0] === 'overlay');
+  o.style.display = 'none';
 };
 
 const createChannel_btn = () => {
@@ -251,6 +344,11 @@ const getChannels = async () => {
     });
 
     currentChannel = result[0].id;
+
+    const header_els = document.getElementById('channel-header')
+    .getElementsByTagName('div');
+    header_els[0].innerText = "Channel: " +  (result[0].name || result[0].id);
+
     getMessages(currentChannel);
     populateChannelSelector(result);
 
@@ -294,13 +392,23 @@ const connectWS = () => {
 };
 connectWS();
 
+// Add username
+const user = document.getElementById('user-container');
+user.innerHTML = "Connected as: " + username + user.innerHTML;
+
+
 document.getElementById('channel-selector')
 .querySelector('button')
 .addEventListener('click', addChannel_btn);
 
+const close_btns = document.getElementsByClassName('close-btn')
+for (var i = 0; i < close_btns.length; i++) {
+  close_btns.item(i)
+  .addEventListener('click', close_btn);
+}
+
 document.getElementById('channel-form')
-.querySelector('button')
-.addEventListener('click', close_btn);
+.addEventListener('submit', joinChannel)
 
 document.addEventListener('click', hideContextMenu);
 

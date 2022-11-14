@@ -70,7 +70,7 @@ button:hover
   display: none;
 }
 
-#channel-form-overlay
+.overlay
 {
   display: none;
   border: none;
@@ -89,7 +89,7 @@ button:hover
 }
 
 
-#close-btn
+.close-btn
 {
   align-self: flex-end;
   justify-self: start;
@@ -99,7 +99,7 @@ button:hover
   padding: 0;
 }
 
-#channel-form
+#channel-form, #invite-form
 {
   width: auto;
   height: auto;
@@ -107,7 +107,7 @@ button:hover
   align-items: start;
 }
 
-#channel-form button
+#channel-form button, #invite-form button
 {
   width: 100%;
 }
@@ -129,7 +129,7 @@ button:hover
 
 #channels .selected
 {
-  background-color: red;
+  background-color: rgb(190, 190, 190);
 }
 
 #message-container
@@ -141,10 +141,20 @@ button:hover
   justify-content: space-around;
 }
 
+#channel-header
+{
+  height: 4vh;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid;
+  padding: 0 1rem;
+}
+
 #messages
 {
   overflow-y: auto;
-  height: calc(98vh - 4vh - 1vh);
+  height: calc(97vh - 4vh - 4vh);
 }
 
 .message

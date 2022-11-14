@@ -8,24 +8,39 @@
   </head>
   <body>
     <div id="context-menu">
+      <button id="invite-btn">Invite</button><br>
       <button id="leave-channel">Delete / Leave channel</button>
-      <button>Invite</button>
+      
+    </div>
+    <div id="invite-overlay" class="overlay">
+      <form id="invite-form" method="POST">
+        <button class="close-btn" type="button">x</button>
+        <input type="date" name="expiration" placeholder="Expiration" autocomplete="off">
+        <input type="number" name="max_use" placeholder="Max use" required autocomplete="off">
+        <button type="submit">Create invite code</button>
+      </form>
     </div>
     <div id="app">
       <div id="channel-selector">
         <div id="channels">
           <button id="show-channel-form">+</button>
         </div>
-        <div id="channel-form-overlay">
-          <form id="channel-form" action="/channels/join" method="POST">
-            <button id="close-btn" type="button">x</button>
-            <input type="number" name="channel_id" placeholder="Channel ID" required >
+        <div id="channel-form-overlay" class="overlay">
+          <form id="channel-form" method="POST">
+            <button class="close-btn" type="button">x</button>
+            <input type="text" name="channel_id" placeholder="Channel ID or Invite code" required autocomplete="off">
             <button id="create-channel-btn" type="button">Create channel</button>
             <button type="submit">Join channel</button>
           </form>
         </div>
       </div>
       <div id="message-container">
+        <div id="channel-header">
+          <div>Channel name</div>
+          <div id="user-container">
+            <a href="/logout">Logout</a>
+          </div>
+        </div>
         <div id="messages">
           <div id="default-content">
             Uhh that looks empty.

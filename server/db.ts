@@ -9,9 +9,11 @@ const knex = require('knex')({
 
 const TABLES = {
   CHANNELS: 'channels',
+  CHANNELS_TO_USERS: 'channels_to_users',
   SESSION: 'session',
   USERS: 'users',
-  MESSAGES: 'messages'
+  MESSAGES: 'messages',
+  INVITATIONS: 'invitations'
 };
 
 exports.db = knex;

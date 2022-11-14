@@ -13,12 +13,12 @@ router.get('/messages/list', auth_middleware, async (req, res) => {
     return;
   }
   const result = await db.select('content', 'source_id', 'date', 'users.username')
-                         .from(TABLES.MESSAGES)
-                         .distinct()
-                         .innerJoin('users', 'users.index', '=', 'source_id')
-                         .innerJoin('channels', 'channels.user_id', '=', req.session.uid)
-                         .where({channel_id: cid})
-                         .orderBy('date');
+  .from(TABLES.MESSAGES)
+  .distinct()
+  .innerJoin(TABLES.USERS, 'users.index', '=', 'source_id')
+  .innerJoin(TABLES.CHANNELS_TO_USERS, 'channels_to_users.user_id', '=', req.session.uid)
+  .where({'messages.channel_id': cid})
+  .orderBy('date');
   res.status(200).json(result);
 });
 

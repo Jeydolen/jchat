@@ -9,9 +9,17 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS channels (
   index SERIAL PRIMARY KEY UNIQUE NOT NULL,
-  cid INTEGER NOT NULL,
-  user_id INTEGER,
-  owner_id INTEGER
+  channel_id INTEGER UNIQUE NOT NULL,
+  owner_id INTEGER NOT NULL,
+  name TEXT
+);
+
+CREATE TABLE IF NOT EXISTS channels_to_users (
+  index SERIAL PRIMARY KEY UNIQUE NOT NULL,
+  user_id INTEGER NOT NULL,
+  channel_id INTEGER NOT NULL,
+  CONSTRAINT user_id_fk FOREIGN KEY (user_id) REFERENCES users(index),
+  CONSTRAINT channel_id_fk FOREIGN KEY (channel_id) REFERENCES channels(channel_id)
 );
 
 CREATE TABLE IF NOT EXISTS messages(
@@ -20,5 +28,18 @@ CREATE TABLE IF NOT EXISTS messages(
   content TEXT NOT NULL,
   source_id INTEGER NOT NULL,
   channel_id INTEGER NOT NULL,
-  CONSTRAINT source_id_fk FOREIGN KEY (source_id) REFERENCES users(index)
+  CONSTRAINT source_id_fk FOREIGN KEY (source_id) REFERENCES users(index),
+  CONSTRAINT channel_id_fk FOREIGN KEY (channel_id) REFERENCES channels(index)
+);
+
+CREATE TABLE IF NOT EXISTS invitations(
+  index SERIAL PRIMARY KEY UNIQUE NOT NULL,
+  created TIMESTAMP NOT NULL,
+  remaining_use INTEGER NOT NULL,
+  source_id INTEGER NOT NULL,
+  channel_id INTEGER NOT NULL,
+  expiration TIMESTAMP,
+  identifier TEXT NOT NULL,
+  CONSTRAINT source_id_fk FOREIGN KEY (source_id) REFERENCES users(index),
+  CONSTRAINT channel_id_fk FOREIGN KEY (channel_id) REFERENCES channels(cid)
 );

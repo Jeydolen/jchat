@@ -4,8 +4,8 @@ const { db, TABLES } = require('./db.ts');
 
 const getUID = (sid) => 
   db.select('sess')
-    .from(TABLES.SESSION)
-    .where({sid: sid});
+  .from(TABLES.SESSION)
+  .where({sid: sid});
 
 const wss = new WebSocketServer({ noServer: true, clientTracking: true });
 wss.on('connection', async (ws, req) => {
@@ -17,8 +17,9 @@ wss.on('connection', async (ws, req) => {
   ws.username = uid[0].sess.username;
 
   const res = await db.select('cid')
-                      .from(TABLES.CHANNELS)
-                      .where({user_id: ws.uid});
+  .from(TABLES.CHANNELS)
+  .join(TABLES.CHANNELS_TO_USERS, 'channels_to_users.channel_id', 'channels.cid')
+  .where({user_id: ws.uid});
 
   ws.channels = res.map((obj) => obj.cid);
 
@@ -41,8 +42,9 @@ wss.on('connection', async (ws, req) => {
     // Validation done
     // Get all user ids connected to specific channel
     const uids = await db.select('user_id')
-                         .from(TABLES.CHANNELS)
-                         .where({cid: json.channel});
+    .from(TABLES.CHANNELS)
+    .join(TABLES.CHANNELS_TO_USERS, 'channels_to_users.channel_id', 'channels.cid')
+    .where({cid: json.channel});
                          
     wss.clients.forEach(client => {
       if (uids.find((id) => id.user_id == client.uid) !== undefined)

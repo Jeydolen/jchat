@@ -8,13 +8,15 @@ This project is being developped as a final project for CS50 online course.
 
 It is not intended to be used commercially or personally even if I don't mind if you do.
 
-An online live version might be accessible sometime but nothing is sure.
+An online live version might be accessible sometime but don't take my word for it.
 
 You can still check my website [jeydolen.com](https://jeydolen.com) to see if it is available.
 
 ## Description:
 
 JChat is a chat app providing a default server and client implementation of websockets.
+
+It provides basic functionality like authentication, channel creation and message forwarding.
 
 - ### Server side
 
@@ -39,12 +41,17 @@ JChat is a chat app providing a default server and client implementation of webs
   /login page.
 
   When user is connected, the app retrieve previous messages for selected channel and show them to user.
+  App is retriving all joined channels for user and generate a navigation bar on left side of the app.
+  When user click on any channel button, app loads all messages and cache them for further use.
+  When user right click on channel button, a custom context-menu appear where he can invite someone ( TODO ) or leave channel.
+  If he clicks on leave channel app determine if he is leaving or deleting channel depending on if he is the owner or not.
 
-  When user write a message and press Enter / click on Send button, message is added to message list and sent to server to distribute to other people currently connected. 
+  When user write a message and press Enter / click on Send, message is added to message list and sent to server to distribute to other people currently connected. 
   If a user registered in current channel isn't connected, he will receive the message next time he logs in.
 
 ## TODO
-
 Rate limits
 
 Permissions
+
+Channel NAMES and permission modifier
