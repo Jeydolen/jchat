@@ -6,12 +6,17 @@ const { db, TABLES } = require('./db.ts');
 const router = Router();
 
 router.get('/messages/list', auth_middleware, async (req, res) => {
+  // Can't use body because this is a GET request
   const cid = parseInt(req.query.channel_id);
   if (req.query.channel_id === undefined || Number.isNaN(cid))
   {
     res.status(403).json({error: 'Channel ID is invalid'});
     return;
   }
+
+  // If user in channel then get messages
+  // TODO: Proper error handling
+
   const result = await db.select('content', 'source_id', 'date', 'users.username')
   .from(TABLES.MESSAGES)
   .distinct()

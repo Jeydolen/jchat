@@ -7,8 +7,8 @@
   </head>
   <body>
     <form action="/register" method="POST">
-      <input type="text" name="username" placeholder="Username" autocomplete="username" required minlength="3" maxlength="39">
-      <input type="email" name="email" placeholder="Email" autocomplete="email"> 
+      <input type="text" name="username" placeholder="Username" autocomplete="off" required minlength="3" maxlength="39">
+      <input type="email" name="email" placeholder="Email" autocomplete="off" required> 
       <input type="password" name="password" 
              placeholder="Password" minlength="8" autocomplete="new-password"
              pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$" 

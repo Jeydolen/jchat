@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS channels (
   index SERIAL PRIMARY KEY UNIQUE NOT NULL,
-  channel_id INTEGER UNIQUE NOT NULL,
   owner_id INTEGER NOT NULL,
+  public BOOLEAN NOT NULL DEFAULT false,
   name TEXT
 );
 
@@ -41,5 +41,5 @@ CREATE TABLE IF NOT EXISTS invitations(
   expiration TIMESTAMP,
   identifier TEXT NOT NULL,
   CONSTRAINT source_id_fk FOREIGN KEY (source_id) REFERENCES users(index),
-  CONSTRAINT channel_id_fk FOREIGN KEY (channel_id) REFERENCES channels(cid)
+  CONSTRAINT channel_id_fk FOREIGN KEY (channel_id) REFERENCES channels(index)
 );

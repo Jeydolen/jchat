@@ -1,7 +1,7 @@
 {
   "name": "jchat_server",
   "version": "1.0.0",
-  "description": "Server sode application of jchat",
+  "description": "Server side application of jchat",
   "main": "server.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

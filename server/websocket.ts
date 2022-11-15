@@ -16,12 +16,12 @@ wss.on('connection', async (ws, req) => {
   ws.uid = uid[0].sess.uid;
   ws.username = uid[0].sess.username;
 
-  const res = await db.select('cid')
+  const res = await db.select('channels.index')
   .from(TABLES.CHANNELS)
-  .join(TABLES.CHANNELS_TO_USERS, 'channels_to_users.channel_id', 'channels.cid')
+  .join(TABLES.CHANNELS_TO_USERS, 'channels_to_users.channel_id', 'channels.index')
   .where({user_id: ws.uid});
 
-  ws.channels = res.map((obj) => obj.cid);
+  ws.channels = res.map((obj) => obj.index);
 
   ws.on('message', async (data) => {
     let json;
@@ -43,9 +43,9 @@ wss.on('connection', async (ws, req) => {
     // Get all user ids connected to specific channel
     const uids = await db.select('user_id')
     .from(TABLES.CHANNELS)
-    .join(TABLES.CHANNELS_TO_USERS, 'channels_to_users.channel_id', 'channels.cid')
-    .where({cid: json.channel});
-                         
+    .join(TABLES.CHANNELS_TO_USERS, 'channels_to_users.channel_id', 'channels.index')
+    .where({'channels.index': json.channel});
+
     wss.clients.forEach(client => {
       if (uids.find((id) => id.user_id == client.uid) !== undefined)
       {
@@ -71,7 +71,7 @@ wss.on('connection', async (ws, req) => {
       source_id: ws.uid, 
       channel_id: channel,
     };
-    await db.insert(db_data).into(TABLES.MESSAGES);
+    await db.returning('index').insert(db_data).into(TABLES.MESSAGES);
   });
 });
 

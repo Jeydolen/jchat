@@ -19,7 +19,7 @@ const channel_middleware = (req, res, next) => {
 router.get('/channels/list', auth_middleware, async (req, res) => {
   const result = await db.select('channel_id as id', 'channels.owner_id')
   .from(TABLES.CHANNELS_TO_USERS)
-  .join(TABLES.CHANNELS, 'channels.cid', '=', 'channel_id')
+  .join(TABLES.CHANNELS, 'channels.index', 'channel_id')
   .where({'user_id': req.session.uid});
   
   res.status(200).json(result);
@@ -33,30 +33,42 @@ router.post('/channels/create', auth_middleware, async (req, res) => {
     return;
   }
 
-  const cid = await db.max('cid')
-  .from(TABLES.CHANNELS)
-  .then(r => r[0].max == null ? 0 : r[0].max + 1)
-  .catch(e => res.send('Error'));
-
-  await db.insert({ cid: cid, owner_id: req.session.uid, public: pub || false })
+  const cid = await db.returning('index as cid')
+  .insert({ owner_id: req.session.uid, public: pub || false })
   .into(TABLES.CHANNELS);
 
-  await db.insert({ channel_id: cid, user_id: req.session.uid})
+  await db.insert({ channel_id: cid[0].cid, user_id: req.session.uid})
   .into(TABLES.CHANNELS_TO_USERS);
 
-  res.status(200).send('Channel created with id: ' + cid);
+  res.status(200).send('Channel created with id: ' + cid[0].cid);
 });
 
 router.post('/channels/delete', auth_middleware, channel_middleware, async (req, res) => {
-  const result = await db.returning('cid')
-  .where({cid: req.cid , owner_id: req.session.uid})
-  .from(TABLES.CHANNELS).del();
+  const result = await db.select('owner_id')
+  .from(TABLES.CHANNELS)
+  .where({index: req.cid, owner_id: req.session.uid})
 
   if (result.length === 0)
   {
     res.status(403).send('You don\'t own this channel !');
     return;
   }
+
+  await db.del()
+  .where({channel_id: req.cid})
+  .from(TABLES.CHANNELS_TO_USERS);
+
+  await db.del()
+  .where({channel_id: req.cid})
+  .from(TABLES.INVITATIONS);
+
+  await db.del()
+  .where({channel_id: req.cid})
+  .from(TABLES.MESSAGES);
+
+  await db.del()
+  .where({index: req.cid})
+  .from(TABLES.CHANNELS);
 
   res.status(200).send('Channel removed with id: ' + req.cid);
 });
@@ -65,7 +77,7 @@ router.post('/channels/invite', auth_middleware, channel_middleware, async (req,
   // If user is not owner of channel or have perm to invite then return
   const result = await db.select('owner_id', 'public')
   .from(TABLES.CHANNELS)
-  .where({cid: req.cid});
+  .where({index: req.cid});
 
   if (result.length === 0)
   {
@@ -109,14 +121,14 @@ router.post('/channels/invite', auth_middleware, channel_middleware, async (req,
     expiration: expiration,
     identifier: id
   };
-  await db.insert(db_data).into('invitations');
+  await db.insert(db_data).into(TABLES.INVITATIONS);
   res.status(200).json({status: 'Invite created with id: ' + id, invite_code: id});
 });
 
 router.post('/channels/join', auth_middleware, async (req, res) => {
   if (req.body.invite === undefined && req.body.channel_id === undefined)
   {
-    res.status(400).send({error: "Either invite or channel_id must be defined !"});
+    res.status(400).json({error: "Either invite or channel_id must be defined !"});
     return;
   }
 
@@ -168,8 +180,8 @@ router.post('/channels/join', auth_middleware, async (req, res) => {
 
   const result = await db.select('public', 'owner_id', 'channels_to_users.user_id')
   .from(TABLES.CHANNELS)
-  .join(TABLES.CHANNELS_TO_USERS, 'channels_to_users.channel_id', 'channels.cid')
-  .where({cid: req.cid});
+  .join(TABLES.CHANNELS_TO_USERS, 'channels_to_users.channel_id', 'channels.index')
+  .where({'channels.index': req.cid});
 
   if (result.length === 0)
   {
@@ -201,8 +213,8 @@ router.post('/channels/join', auth_middleware, async (req, res) => {
 router.post('/channels/leave', auth_middleware, channel_middleware, async (req, res) => {
   const uids = await db.select('channels_to_users.user_id', 'owner_id')
   .from(TABLES.CHANNELS)
-  .join(TABLES.CHANNELS_TO_USERS, 'channels_to_users.channel_id', 'channels.cid')
-  .where({cid: req.cid});
+  .join(TABLES.CHANNELS_TO_USERS, 'channels_to_users.channel_id', 'channels.index')
+  .where({'channels.index': req.cid});
 
   let isOwner = false;
   const presence = uids.find(id => {

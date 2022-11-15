@@ -112,7 +112,7 @@ const getMessages = async (cid) => {
     result = await fetch(`http://localhost:3000/messages/list?channel_id=${cid}`,
       {
         method: 'GET', 
-        mode: 'cors', 
+        mode: 'cors',
         credentials: 'include'
       }
     ).then(res => res.json())
@@ -234,7 +234,7 @@ const joinChannel = async (e) => {
   let body = {};
   // If value is number then we assume its a channel ID
   // Otherwise its  an invite code
-  if (Number.isNaN(parseInt(input)))
+  if (/[a-zA-Z]/g.test(input))
   {
     body.invite = input;
   }
@@ -256,6 +256,7 @@ const joinChannel = async (e) => {
       }
     }
   )
+  .then(r => r.json())
   .then(response => window.location.reload())
   .catch(e => console.log(e));
   console.log(result);
@@ -386,7 +387,12 @@ const connectWS = () => {
   }
 
   websocket.onmessage = (event) => {
-    receiveMsg(JSON.parse(event.data));
+    const json = JSON.parse(event.data);
+    const now = new Date(Date.now());
+    now.setUTCMinutes(now.getMinutes() + now.getTimezoneOffset());
+
+    json.date = now.toISOString();
+    receiveMsg(json);
     cacheMessage(event.data);
   }
 };
