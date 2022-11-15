@@ -1,6 +1,6 @@
 # JChat
 
-## Video Demo:  <https://www.youtube.com/watch?v=v1J5ZqkznXY>
+## Video Demo:  <https://www.youtube.com/watch?v=-JHJaJESYy4>
 
 ## Disclaimer: 
 
